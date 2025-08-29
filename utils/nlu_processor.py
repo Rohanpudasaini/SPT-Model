@@ -3,14 +3,10 @@ from typing import Any, Dict, Optional
 
 import numpy as np
 import torch
-from utils.prerequisite import (
-    COLLECT_CHUNKS,
-    GET_SPEECH_TIMESTAMPS,
-    PIPE,
-    SAMPLE_RATE,
-    VAD_MODEL,
-)
+
+
 from rasa.core.agent import Agent
+from utils.utils import prerequisite
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -19,7 +15,15 @@ logger = logging.getLogger(__name__)
 MODEL_LOADED = True
 
 
+
+
+
 async def transcribe_segment(audio_np_segment: np.ndarray, language: str) -> str:
+    GET_SPEECH_TIMESTAMPS = prerequisite['GET_SPEECH_TIMESTAMPS']
+    VAD_MODEL = prerequisite['VAD_MODEL']
+    SAMPLE_RATE = prerequisite['SAMPLE_RATE']
+    COLLECT_CHUNKS = prerequisite['COLLECT_CHUNKS']
+    PIPE = prerequisite['PIPE']
     if not MODEL_LOADED:
         logger.error("Transcription requested but model not loaded.")
         raise RuntimeError("Model not loaded.")

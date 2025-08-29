@@ -4,13 +4,14 @@ from concurrent import futures
 
 import grpc
 import numpy as np
+from utils.utils import prerequisite
 import protos.speech_service_pb2 as speech_pb2
 from protos.speech_service_pb2_grpc import (
     SpeechServiceServicer,
     add_SpeechServiceServicer_to_server,
 )
 from utils.nlu_processor import NLUProcessor, transcribe_segment
-from utils.prerequisite import MODEL_LOADED, PIPE, VAD_MODEL, initial
+from utils.prerequisite import initial
 
 # Import the dynamically generated classes
 TranscribeAudioRequest = speech_pb2.TranscribeAudioRequest
@@ -45,7 +46,10 @@ class SpeechServiceImpl(SpeechServiceServicer):
 
             # Convert base64 audio data to numpy array
             audio_bytes = request.audio_data
+            with open("output.wav", "wb") as f:
+                f.write(audio_bytes)
             audio_np = np.frombuffer(audio_bytes, dtype=np.float32)
+
 
             # Transcribe the audio
             transcription = await transcribe_segment(audio_np, request.language)
@@ -172,12 +176,30 @@ class SpeechServiceImpl(SpeechServiceServicer):
 
 async def serve():
     """Start the gRPC server."""
-    global NLU_PROCESSOR
+    global NLU_PROCESSOR, MODEL_LOADED, PIPE, DEVICE,VAD_MODEL, GET_SPEECH_TIMESTAMPS, COLLECT_CHUNKS
 
     # Initialize models
     logger.info("Initializing models...")
-    async for _ in initial(logger, NLU_PROCESSOR):
-        pass
+    result = await initial(logger)
+
+    (
+        MODEL_LOADED, 
+        PIPE, 
+        DEVICE, 
+        VAD_MODEL, 
+        GET_SPEECH_TIMESTAMPS, 
+        COLLECT_CHUNKS)  = result
+
+    from utils.utils import prerequisite
+    prerequisite["MODEL_LOADED"] =MODEL_LOADED 
+    prerequisite["PIPE"] = PIPE 
+    prerequisite["DEVICE"] = DEVICE
+    prerequisite["VAD_MODEL"] = VAD_MODEL
+    prerequisite["GET_SPEECH_TIMESTAMPS"] = GET_SPEECH_TIMESTAMPS 
+    prerequisite["COLLECT_CHUNKS"] = COLLECT_CHUNKS
+    prerequisite["SAMPLE_RATE"] = 16000
+    
+    
 
     # Load NLU processor
     try:

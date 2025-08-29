@@ -10,15 +10,7 @@ logger = logging.getLogger(__name__)
 SAMPLE_RATE = 0
 
 
-async def initial(logger, NLUProcessor):
-    global \
-        MODEL_LOADED, \
-        PIPE, \
-        DEVICE, \
-        NLU_PROCESSOR, \
-        VAD_MODEL, \
-        GET_SPEECH_TIMESTAMPS, \
-        COLLECT_CHUNKS
+async def initial(logger):
     try:
         # Load Whisper model
         logger.info("Loading speech recognition model...")
@@ -28,7 +20,7 @@ async def initial(logger, NLUProcessor):
         print("Before loading the model")
         # local_dir = "../whisper_models/whisper-large-v3/models--openai--whisper-large-v3/snapshots/91d5775ea8268a1f9edfcf16afcc4f68802940d0"
         MODEL_ID = "openai/whisper-large-v3-turbo"
-        local_dir = "./whisper_models/whisper-large-v3-turbo"
+        local_dir = "./models/whisper-large-v3-turbo"
 
         torch_dtype = (
             torch.float16
@@ -69,28 +61,17 @@ async def initial(logger, NLUProcessor):
         (GET_SPEECH_TIMESTAMPS, _, _, _, COLLECT_CHUNKS) = vad_utils
         logger.info("Silero VAD loaded.")
 
-        # Load Rasa model
-        logger.info("Loading Rasa NLU model...")
-        NLU_MODEL_PATH = "models/nlu_two_intent_classifier.tar.gz"
-        NLU_PROCESSOR = NLUProcessor.create(NLU_MODEL_PATH)
-        if NLU_PROCESSOR:
-            logger.info("✅ Rasa NLUProcessor initialized successfully.")
-        else:
-            logger.error("Failed to initialize Rasa NLUProcessor.")
 
-        yield (MODEL_LOADED, 
+        return (MODEL_LOADED, 
         PIPE, 
         DEVICE, 
-        NLU_PROCESSOR, 
         VAD_MODEL, 
         GET_SPEECH_TIMESTAMPS, 
         COLLECT_CHUNKS)
 
     except Exception as e:
         logger.exception("Failed to load models:", e)
-        MODEL_LOADED = False
-        NLU_PROCESSOR = None
-        yield
+        
     finally:
         logger.info("Shutting down...")
 
