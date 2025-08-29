@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package speech_service;
+
+// Service definition for speech processing operations
+service SpeechService {
+  // Transcribe an audio segment
+  rpc TranscribeAudioSegment (TranscribeAudioRequest) returns (TranscribeAudioResponse);
+
+  // Merge multiple transcriptions into a single text
+  rpc MergeTranscriptions (MergeTranscriptionsRequest) returns (MergeTranscriptionsResponse);
+
+  // Process text for intent analysis and entity extraction
+  rpc ProcessIntent (ProcessIntentRequest) returns (ProcessIntentResponse);
+
+  // Health check for the model service
+  rpc HealthCheck (HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+// Request message for audio transcription
+message TranscribeAudioRequest {
+  bytes audio_data = 1;  // Raw audio bytes (base64 encoded)
+  string language = 2;   // Language code (e.g., "en", "ms", "my", "zh")
+  int32 sample_rate = 3; // Audio sample rate (default: 16000)
+}
+
+// Response message for audio transcription
+message TranscribeAudioResponse {
+  string transcription = 1;  // Transcribed text
+  bool success = 2;          // Whether transcription was successful
+  string error_message = 3;  // Error message if transcription failed
+}
+
+// Request message for merging transcriptions
+message MergeTranscriptionsRequest {
+  repeated string transcriptions = 1;  // List of transcription segments to merge
+  string language = 2;                 // Language for context
+}
+
+// Response message for merged transcriptions
+message MergeTranscriptionsResponse {
+  string merged_text = 1;    // Combined transcription text
+  bool success = 2;          // Whether merging was successful
+  string error_message = 3;  // Error message if merging failed
+}
+
+// Request message for intent processing
+message ProcessIntentRequest {
+  string text = 1;           // Text to analyze for intent
+  float confidence_threshold = 2;  // Minimum confidence threshold (default: 0.80)
+}
+
+// Response message for intent processing
+message ProcessIntentResponse {
+  string action = 1;         // Identified action/intent
+  string message = 2;        // Human-readable message
+  map<string, string> form_data = 3;  // Extracted entities as key-value pairs
+  repeated Entity entities = 4;       // Detailed entity information
+  float confidence = 5;      // Confidence score for the intent
+  bool success = 6;          // Whether processing was successful
+  string error_message = 7;  // Error message if processing failed
+}
+
+// Detailed entity information
+message Entity {
+  string entity = 1;         // Entity type (e.g., "amount", "person")
+  string value = 2;          // Entity value
+  float confidence = 3;      // Confidence score for the entity
+  int32 start = 4;           // Start position in text
+  int32 end = 5;             // End position in text
+}
+
+// Request message for health check
+message HealthCheckRequest {
+  // Empty request
+}
+
+// Response message for health check
+message HealthCheckResponse {
+  bool healthy = 1;          // Whether the service is healthy
+  string status = 2;         // Status message
+  string version = 3;        // Service version
+  repeated string loaded_models = 4;  // List of loaded models
+}
