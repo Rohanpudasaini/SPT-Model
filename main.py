@@ -172,12 +172,13 @@ class SpeechServiceImpl(SpeechServiceServicer):
 
 async def serve():
     """Start the gRPC server."""
+    global NLU_PROCESSOR
+
     # Initialize models
     logger.info("Initializing models...")
-    async for _ in initial(logger):
+    async for _ in initial(logger, NLU_PROCESSOR):
         pass
 
-    global NLU_PROCESSOR
     # Load NLU processor
     try:
         NLU_PROCESSOR = NLUProcessor.create("models/nlu_two_intent_classifier.tar.gz")

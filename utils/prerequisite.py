@@ -1,7 +1,6 @@
 import logging
 
 import torch
-from nlu_processor import NLUProcessor
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
 
 logging.basicConfig(
@@ -11,7 +10,7 @@ logger = logging.getLogger(__name__)
 SAMPLE_RATE = 0
 
 
-async def initial(logger):
+async def initial(logger, NLUProcessor):
     global \
         MODEL_LOADED, \
         PIPE, \
@@ -79,7 +78,13 @@ async def initial(logger):
         else:
             logger.error("Failed to initialize Rasa NLUProcessor.")
 
-        yield
+        yield (MODEL_LOADED, 
+        PIPE, 
+        DEVICE, 
+        NLU_PROCESSOR, 
+        VAD_MODEL, 
+        GET_SPEECH_TIMESTAMPS, 
+        COLLECT_CHUNKS)
 
     except Exception as e:
         logger.exception("Failed to load models:", e)
