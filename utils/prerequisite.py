@@ -2,7 +2,6 @@ import logging
 
 import torch
 from nlu_processor import NLUProcessor
-from numpy import ndarray
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
 
 logging.basicConfig(
@@ -91,35 +90,3 @@ async def initial(logger):
         logger.info("Shutting down...")
 
 
-async def transcribe_segment(audio_np_segment: ndarray, language: str) -> str:
-    if not MODEL_LOADED:
-        logger.error("Transcription requested but model not loaded.")
-        raise RuntimeError("Model not loaded.")
-    try:
-        # Apply VAD to filter silence
-        audio_torch = torch.from_numpy(audio_np_segment).float()
-        speech_timestamps = GET_SPEECH_TIMESTAMPS(
-            audio_torch,
-            VAD_MODEL,
-            sampling_rate=SAMPLE_RATE,
-            threshold=0.3,  # Lowered threshold for more sensitivity
-            min_speech_duration_ms=100,
-            min_silence_duration_ms=100,
-            return_seconds=False,
-        )
-        if not speech_timestamps:
-            return ""
-        filtered_audio_torch = COLLECT_CHUNKS(speech_timestamps, audio_torch)
-        filtered_audio_np = filtered_audio_torch.numpy()
-
-        # Transcription with improved parameters (removed initial_prompt as it's not supported)
-        generate_kwargs = {
-            "language": language,
-            "temperature": 0.0,
-            "num_beams": 5,
-        }
-        result = PIPE(filtered_audio_np, generate_kwargs=generate_kwargs)
-        return result["text"].strip()  # type: ignore
-    except Exception:
-        logger.exception("Transcription error:")
-        return ""

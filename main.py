@@ -1,15 +1,16 @@
 import asyncio
 import logging
 from concurrent import futures
-from typing import List
 
 import grpc
 import numpy as np
-import speech_service_pb2 as speech_pb2
-from speech_service_pb2_grpc import (
+import protos.speech_service_pb2 as speech_pb2
+from protos.speech_service_pb2_grpc import (
     SpeechServiceServicer,
     add_SpeechServiceServicer_to_server,
 )
+from utils.nlu_processor import NLUProcessor, transcribe_segment
+from utils.prerequisite import MODEL_LOADED, PIPE, VAD_MODEL, initial
 
 # Import the dynamically generated classes
 TranscribeAudioRequest = speech_pb2.TranscribeAudioRequest
